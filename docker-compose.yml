@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: mon_app
+    build: .
+    restart: always  # Redémarrer le conteneur en cas de crash
+    ports:
+      - "3000:3000"  # Adapter le port si nécessaire
+    volumes:
+      - .:/app
+    environment:
+      - NODE_ENV=production

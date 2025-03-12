@@ -51,4 +51,4 @@ jobs:
 
             # Recréer et redémarrer le conteneur
             docker-compose up -d --build
-          EO
+          EOF

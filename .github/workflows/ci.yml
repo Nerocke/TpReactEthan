@@ -18,14 +18,7 @@ jobs:
         with:
           node-version: 18  # Mets la version adaptée
 
-      # - name: Install dependencies
-      #   run: npm install
-
-      # - name: Run tests
-      #   run: npm test  # Exécute les tests, si ça échoue, le déploiement s'arrête
-
       - name: Set up SSH
-        if: success()  # Exécute cette étape seulement si les tests réussissent
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > ~/.ssh/id_rsa
@@ -33,22 +26,25 @@ jobs:
           ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy application
-        if: success()  # Exécute cette étape seulement si les tests réussissent
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<EOF
-            # Aller dans le répertoire de l'application
-            cd /home/divin/TpReactEthan
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            set -e  # Arrêter le script en cas d'erreur
 
-            # Mettre à jour le code depuis le dépôt Git
+            echo "📥 Pull le code..."
+            cd /home/booba/Projet/mon-app || exit 1
             git pull origin main
 
-            # Arrêter et supprimer le conteneur existant
+            echo "🛑 remove les containers..."
             docker-compose down
 
-            # Supprimer les images Docker obsolètes
+            echo "🧹 Cleaning up old images and containers..."
             docker system prune -af
-            docker image prune -af
 
-            # Recréer et redémarrer le conteneur
+            echo "🚀 Rebuild et demarre..."
             docker-compose up -d --build
+
+            echo "✅ Déploiement réussi "
           EOF
+
+      - name: Cleanup pipeline SSH keys
+        run: rm -rf ~/.ssh  # Suppression des clés SSH après exécution
